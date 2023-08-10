@@ -10,8 +10,6 @@ public class Plan {
     @Column(name = "plan_id")
     private Long plan_id;
 
-    @Column(name = "plan_name")
-    private String plan_name;
 
     public Long getPlan_id() {
         return plan_id;
@@ -19,14 +17,6 @@ public class Plan {
 
     public void setPlan_id(Long plan_id) {
         this.plan_id = plan_id;
-    }
-
-    public String getPlan_name() {
-        return plan_name;
-    }
-
-    public void setPlan_name(String plan_name) {
-        this.plan_name = plan_name;
     }
 
     public double getRate() {
@@ -45,9 +35,20 @@ public class Plan {
         this.modelId = modelId;
     }
 
-    @Column(name = "rate_id")
+    @Column(name = "rate")
     private double rate;
 
-    @Column(name = "Model_id")
+    @Column(name = "ModelId")
     private Integer modelId;
+
+    public Integer getPlanType() {
+        return planType;
+    }
+
+    public void setPlanType(Integer planType) {
+        this.planType = planType;
+    }
+
+    @Column(name = "plan_type_id")
+    private Integer planType;
 }

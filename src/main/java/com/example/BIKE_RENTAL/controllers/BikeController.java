@@ -1,19 +1,18 @@
 package com.example.BIKE_RENTAL.controllers;
 
-import com.example.BIKE_RENTAL.dao.entities.Bike;
-import com.example.BIKE_RENTAL.dao.entities.Inventory;
-import com.example.BIKE_RENTAL.dao.entities.Plan;
+import com.example.BIKE_RENTAL.dao.entities.*;
 import com.example.BIKE_RENTAL.dao.repositories.BikeRepository;
 import com.example.BIKE_RENTAL.dao.repositories.InventoryRepository;
 import com.example.BIKE_RENTAL.dao.repositories.PlanRepository;
+import com.example.BIKE_RENTAL.dao.repositories.PlanTypeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.swing.text.html.Option;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +27,8 @@ public class BikeController {
     @Autowired
     private InventoryRepository inventoryRepository;
 
+    @Autowired
+    private PlanTypeRepository planTypeRepository;
 
     @GetMapping("/model_options")
     public ResponseEntity<List<Bike>> viewBikeOptions() {
@@ -54,15 +55,65 @@ public class BikeController {
     private PlanRepository planRepository;
 
     @GetMapping("/Plans")
-    public ResponseEntity<List<Plan>> viewPlans(@RequestParam("modelid")int modelid) {
+    public ResponseEntity<List<DisplayPlan>> viewPlans(@RequestParam("modelid")int modelid) {
         Optional<List<Plan>> plans = planRepository.findByModelId(modelid);
         if(plans.isEmpty()){
             return null;
         }
 
         List<Plan> viewplans = plans.get();
+        List<Integer> distinctList = new ArrayList<>();
+        for(Plan plan : viewplans){
+            if (!distinctList.contains(plan.getPlanType())){
+                distinctList.add(plan.getPlanType());
+            }
+        }
 
-       return ResponseEntity.ok(viewplans) ;
+        List<PlanType> planTypeList = planTypeRepository.getPlanTypes(distinctList);
+
+        List<DisplayPlan> displayPlans = getDisplayPlansFromPlans(viewplans, planTypeList);
+
+        return ResponseEntity.ok(displayPlans);
     }
 
+    private List<DisplayPlan> getDisplayPlansFromPlans(List<Plan> viewplans,
+                                                       List<PlanType> planTypeList) {
+        List<DisplayPlan> displayPlans = new ArrayList<>();
+        for(Plan plan: viewplans){
+            DisplayPlan displayPlan = new DisplayPlan();
+            displayPlan.setPlan_id(plan.getPlan_id());
+            displayPlan.setPlanType(plan.getPlanType());
+            displayPlan.setRate(plan.getRate());
+            displayPlan.setModelId(plan.getModelId());
+
+            for(PlanType type: planTypeList){
+                if (type.getPlanTypeId() == plan.getPlanType()){
+                    displayPlan.setPlaName(type.getPlan_name());
+                    break;
+                }
+            }
+
+            displayPlans.add(displayPlan);
+        }
+        return displayPlans;
     }
+
+    private String searchPlanName(int planTypeId) {
+        switch (planTypeId) {
+            case 1:
+                return "hourly";
+            case 2:
+                return "daily";
+            case 3:
+                return "weekly";
+            case 4:
+                return "monthly";
+
+        }
+        return null;
+    }
+
+
+    }
+
+
